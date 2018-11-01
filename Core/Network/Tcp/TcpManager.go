@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func StartListen(port string, codeC *Core.NetworkCodeC, receiveQueue *Queue.NoneBlockingQueue, pingMsgId int32, pongMsgId int32) {
+func StartListen(port string, codeC Core.NetworkCodeC, receiveQueue *Queue.NoneBlockingQueue, pingMsgId int32, pongMsgId int32) {
 	l, err := net.Listen("tcp", port)
 	if err != nil {
 		fmt.Println("listen error:", err)
@@ -28,7 +28,7 @@ func StartListen(port string, codeC *Core.NetworkCodeC, receiveQueue *Queue.None
 		})
 	}
 }
-func StartDail(add string, port string, codeC *Core.NetworkCodeC, receiveQueue *Queue.NoneBlockingQueue, pingMsgId int32, pongMsgId int32) {
+func StartDail(add string, port string, codeC Core.NetworkCodeC, receiveQueue *Queue.NoneBlockingQueue, pingMsgId int32, pongMsgId int32) {
 	conn, err := net.Dial("tcp", add+":"+port)
 	if err != nil {
 		fmt.Println("dial error:", err)

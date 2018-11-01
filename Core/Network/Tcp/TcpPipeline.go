@@ -33,9 +33,10 @@ type tcpPipeline struct {
 	currentMsgBodyLength int32
 	isClose              bool
 	closeMutex           sync.Mutex
+	args                 interface{}
 }
 
-func NewPipeline(c net.Conn, codeC *Core.NetworkCodeC, receiveQueue *Queue.NoneBlockingQueue) *tcpPipeline {
+func NewPipeline(c net.Conn, codeC Core.NetworkCodeC, receiveQueue *Queue.NoneBlockingQueue) *tcpPipeline {
 	piepline := &tcpPipeline{}
 	piepline.start(c, codeC, receiveQueue)
 	return piepline
@@ -55,8 +56,13 @@ func (self *tcpPipeline) Send(msgId int32, msgBody interface{}) {
 func (self *tcpPipeline) Close() {
 	self.doClose()
 }
-
-func (self *tcpPipeline) start(c net.Conn, codeC *Core.NetworkCodeC, mainLogicMsgQueue *Queue.NoneBlockingQueue) {
+func (self *tcpPipeline) GetParameter() interface{} {
+	return self.args
+}
+func (self *tcpPipeline) SetParameter(args interface{}) {
+	self.args = args
+}
+func (self *tcpPipeline) start(c net.Conn, codeC Core.NetworkCodeC, mainLogicMsgQueue *Queue.NoneBlockingQueue) {
 	self.connection = c
 	self.codeC = codeC
 	self.sendQueue = Queue.NewNoneBlockingQueue()
@@ -79,7 +85,7 @@ func (self *tcpPipeline) beginSend() {
 		}
 		// do send
 		for _, msgElem := range sendBuffer {
-			messageElement := msgElem.(*pieplineMessageElement)
+			messageElement := msgElem.(*Pipeline.PipelineMessageElement)
 			sendBuffer, err := self.getSendBuffer(messageElement)
 			if err != nil {
 				continue
@@ -127,7 +133,7 @@ func (self *tcpPipeline) doClose() {
 	}
 	self.isClose = true
 	self.connection.Close()
-	self.sendQueue.Add(&pieplineMessageElement{msgId: -1, msgBody: nil})
+	self.sendQueue.Add(&Pipeline.PipelineMessageElement{MsgId: -1})
 }
 func (self *tcpPipeline) getSendBuffer(messageElement *Pipeline.PipelineMessageElement) ([]byte, error) {
 	sendBuffer, err := self.codeC.Encode(messageElement.MsgId, messageElement.MsgBody)
